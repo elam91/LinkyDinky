@@ -1,6 +1,3 @@
-import requests
-
-from core.downloader import download_config, download_keywords
 from core.friend_request_core import FriendRequestBot
 
 
