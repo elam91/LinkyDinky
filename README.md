@@ -4,7 +4,7 @@ LinkyDinky is a selenium based bot designed to automate LinkedIn actions, especi
 
 It also helps you send connect messages in HEBREW, or your native language (requires a bit more work from you)
 
-The project already contains translations to hebrew for more than 1700 name, but it helps you add more as you work.
+The project already contains translations to hebrew for more than 1700 names, but it helps you add more as you work.
 ## This repo is for educational purposes only, and you bear full responsibility if you use it for real.
 
 ## I am not responsible if you use this against LinkedIn terms of service.
