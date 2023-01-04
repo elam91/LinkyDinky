@@ -1,12 +1,11 @@
 {
-    "user": "johndoe",
+    "user": "rotem",
     "loops": 3,
     "skip_days": [
         "friday",
         "saturday"
     ],
     "exact_match": false,
-    "one_keyword": false,
     "webhook_url": "https://discord.com/api/webhooks/YOURWEBHOOKHERE",
     "delayed_start": false,
     "resend_amount": 30,
@@ -23,5 +22,6 @@
     "minimum_daily_connects": 36,
     "old_connect_month_delta_answered": 12,
     "old_connect_month_delta_unanswered": 6,
-    "location" : "Israel"
+    "location": "Israel",
+    "start_page": "99"
 }
