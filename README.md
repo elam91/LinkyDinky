@@ -66,8 +66,8 @@ Please make sure you have all the fields in your file even if you're not actuall
 ### Name the cookie file {user}cookie.json, and place it in the cookies folder, for example: 
 
 #### **`johndoecookie.json`**
-```json
-Paste the cookie for user johndoe in this file in the cookies/ directory
+```javascript
+// Paste the cookie for user johndoe in this file in the cookies/ directory
 ```
 
 ### Put some keywords in the [keywordskeep.json](config/keywordskeep.json)  file:
