@@ -24,7 +24,7 @@ from pathlib import Path
 _ALLOWED_ARGUMENTS = ['user', 'start_page', 'loops', 'connect_amount',
                       'minimum_experience', 'location', 'sleep_between_loops',
                       'name_connect_amount', 'minimum_daily_connects', 'maximum_daily_connects',
-                      'resend_amount', 'webhook_url', 'chromedriver_path']
+                      'resend_amount', 'webhook_url', 'chromedriver_path', 'scheduled_time']
 
 _ALLOWED_BOOL_ARGUMENTS = ['exact_match', 'send_connect_message', 'delayed_start', 'mandatory_first_word']
 
@@ -60,6 +60,7 @@ class BaseLinkedinBot:
         for argument in _ALLOWED_BOOL_ARGUMENTS:
             self._parser.add_argument(f'--{argument}', action='store_true')
         self._parser.add_argument('--keyword', nargs='+')
+
 
     def _apply_bash_args(self):
         args = self._parser.parse_args()
