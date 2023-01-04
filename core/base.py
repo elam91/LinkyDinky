@@ -72,8 +72,9 @@ class BaseLinkedinBot:
             self.download_keywords(args.download_keywords)
 
         for attr, value in args.__dict__.items():
-            if attr == '--keyword':
-                self.custom_keyword = ' '.join(value)
+            if attr == 'keyword':
+                if value:
+                    self.custom_keyword = ' '.join(value)
             else:
                 if value is not None:
                     self.config[attr] = value
