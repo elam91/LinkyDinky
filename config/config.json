@@ -21,6 +21,7 @@
     "send_connect_message": false,
     "maximum_daily_connects": 52,
     "minimum_daily_connects": 36,
-    "old_connect_month_delta_answered": 6,
-    "old_connect_month_delta_unanswered": 6
+    "old_connect_month_delta_answered": 12,
+    "old_connect_month_delta_unanswered": 6,
+    "location" : "Israel"
 }
