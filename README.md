@@ -10,6 +10,15 @@ The project already contains translations to hebrew for more than 1700 name, but
 ## I am not responsible if you use this against LinkedIn terms of service.
 ### You can be temporarily or completely banned from LinkedIn for using automated services, especially in high volume. 
 
+Links:
+[Usage](#usage),
+[Sending Connections](#connecting-with-users--friend-requests--),
+[Resending Messages to my connections](#sending-messages-again-to-existing-connections-),
+[Withdrawing Invites](#withdrawing-invites),
+[Translation](#translating-names),
+[Advanced Configuration](#advanced-configuration)
+
+
 ## Installation
 
 1) Clone the repo
@@ -95,6 +104,7 @@ python request_loops.py --user janedoe
 ```bash
 python request_loops.py --user janedoe --keyword java expert
 ```
+[Back to top](#linkydinky)
 
 
 ### Let's breakdown different programs and their configuration:
@@ -135,6 +145,7 @@ Then it connects, if send_connect_message is set, it sends one with their transl
 | `minimum_daily_connects`  | If running `request_minimum.py`, will continue again and again until this number has been reached.                               | `36`                                                                                                                                                                                                              |
 | `location`                | The location to use in search. If not provided, will default to Israel.                                                        | `"Israel"`                                                                                                                                                                                                       |
 
+[Back to top](#linkydinky)
 
 ## Sending messages again to existing connections:
 Will search your connections for the keyword, open the chat with the user, and checks to make sure a phone number hasnt already been shared, 
@@ -163,6 +174,7 @@ if you don't provide a keyword, one will be taken from the **`keywordskeep.json`
 | `old_connect_month_delta_unanswered` | How many months should pass from last message, if the user has  **never** replied to you before | `6`                                                  |
 | `resend_amount`                       | How many users to collect in each loop, **HIGHLY DISCOURAGE MORE THAN 30, MORE USUALLY FAILS**  |                                                      |
 
+[Back to top](#linkydinky)
 
 ## Withdrawing invites
 Will search your pending invitations and withdraw anyone over a month old.
@@ -182,6 +194,7 @@ python withdraw_requests.py
 |--------------------------------------|-------------------------------------------------------------------------------------------------|---------------|
 | `withdraw_amount`                    | How many invites to withdraw, if not provided, defaults to 10.                                  | `100`         |
 
+[Back to top](#linkydinky)
 
 ## Translating names
 While using the other programs, they will collect first names that have not already been translated,
@@ -221,9 +234,57 @@ donnatello
 |-----------------------|----------------------------------------------------------------------------|---------------|
 | `name_collect_amount` | How many first names to collect | `100`         |
 
+[Back to top](#linkydinky)
+
+## Advanced configuration
+
+### **`config/blacklist.json`**
+
+Blacklist of keywords to skip in collection phase:
+
+```javascript
+['ceo', 'manager'] // must be single word, case insensitive.
+```
 
 
+### **`config/nameblacklist.json`**
 
+Blacklist of names first/last to skip in collection phase, don't know why you would use this
+maybe someone named Count Rugen killed your father, so you don't want to hire him:
+
+```javascript
+['rugen', 'vizzini', 'jeff'] // must be single word, case insensitive.
+```
+
+
+### **`config/currentworkblacklist.json`**
+
+Used in the **connect** phase, when checking experience, skips if the current employer is defined here
+or if the current title is defined here, only the most recent job is checked.
+
+```javascript
+{
+  "position": [
+    "head",
+    "count"
+  ],
+  "employer": [
+    "nso",
+    "humperdinck"
+  ]
+}
+```
+
+### **`config/mandatory.json`**
+
+Only collects the user if one of the words on this list is present in the title. 
+There is no need to add the word `senior` because it is automatically added if your keyword contains senior.
+
+```javascript
+['pirate', 'dread'] // must be single word, case insensitive.
+```
+
+[Back to top](#linkydinky)
 
 
 ## Contributing
