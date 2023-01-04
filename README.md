@@ -167,12 +167,12 @@ if you don't provide a keyword, one will be taken from the **`keywordskeep.json`
 
 **`config/config.json`**
 
-| Property                             | Description                                                                                     | Example Value                                        |
-|--------------------------------------|-------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| `old_connects_loops`                 | The number of loops to run.                                                                     | `3`                                                  |
-| `old_connect_month_delta_answered`   | How many months should pass from last message, if the user has replied to you before            | `12`                                                 |
-| `old_connect_month_delta_unanswered` | How many months should pass from last message, if the user has  **never** replied to you before | `6`                                                  |
-| `resend_amount`                       | How many users to collect in each loop, **HIGHLY DISCOURAGE MORE THAN 30, MORE USUALLY FAILS**  |                                                      |
+| Property                             | Description                                                                                     | Example Value |
+|--------------------------------------|-------------------------------------------------------------------------------------------------|---------------|
+| `old_connects_loops`                 | The number of loops to run.                                                                     | `3`           |
+| `old_connect_month_delta_answered`   | How many months should pass from last message, if the user has replied to you before            | `12`          |
+| `old_connect_month_delta_unanswered` | How many months should pass from last message, if the user has  **never** replied to you before | `6`           |
+| `resend_amount`                       | How many users to collect in each loop, **HIGHLY DISCOURAGE MORE THAN 30, MORE USUALLY FAILS**  | `30`           |
 
 [Back to top](#linkydinky)
 
