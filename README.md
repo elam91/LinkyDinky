@@ -127,6 +127,10 @@ Then it connects, if send_connect_message is set, it sends one with their transl
   * **`request_loops.py`** will run the number of loops specified and stop.
   * **`request_minimum.py`** will run until either the minimum requirement has been met and a loop has ended, or the maximum requirement has been met.
   *  **`scheduler.py`** can be used for simple scheduling (but using cron is better)
+  
+```bash
+  python  scheduler.py --scheduled_time 13:00
+```
 * If you are using `send_connect_message` you also need to put a message in messages.json.
 **When sending connect messages, people that have names that have not yet been translated will not be connected with, and their names will be saved for later**
 ### configuration:
