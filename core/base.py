@@ -35,6 +35,7 @@ class BaseLinkedinBot:
             prog='LinkyDinky',
             description='LinkedIn Recruiter Automator',
             epilog='')
+        self.custom_keyword = None
         self._add_parse_arguments()
         self.last_log = ''
         self.browser = None
@@ -48,6 +49,7 @@ class BaseLinkedinBot:
         self.current_page_dict = self.json_to_list(self.config_path + 'current_page.json')
         self.location = self.config.get('location', 'Israel')
         self.get_cookie_path(self.user)
+        self.one_keyword = False
 
         if self.user not in self.current_page_dict.keys():
             self.current_page_dict[self.user] = {}
@@ -62,7 +64,7 @@ class BaseLinkedinBot:
     def _apply_bash_args(self):
         args = self._parser.parse_args()
         for attr, value in args.__dict__.items():
-            if attr == 'keyword':
+            if attr == '--keyword':
                 self.custom_keyword = ' '.join(value)
             else:
                 if value is not None:
@@ -188,7 +190,10 @@ class BaseLinkedinBot:
             self.set_mandatory_senior()
             self.log(f"KEYWORD: {self.current_keyword}")
             return self.custom_keyword
-        self.keywords.remove(old_keyword)
+        try:
+            self.keywords.remove(old_keyword)
+        except ValueError:
+            pass
         self.list_to_json(self.config_path + "keywords.json", self.keywords)
         if not self.keywords:
             self.reset_keywords()
@@ -210,9 +215,9 @@ class BaseLinkedinBot:
             self.reset_keywords()
 
         if len(self.keywords_keep) == 1:
-            self.config["one_keyword"] = True
+            self.one_keyword = True
         else:
-            self.config["one_keyword"] = False
+            self.one_keyword = False
         self.save_config_variable_to_json()
 
         self.current_keyword = self.choose_new_keyword(self.current_keyword)

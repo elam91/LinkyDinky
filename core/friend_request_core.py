@@ -85,7 +85,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
                 self.current_page = int(new_last_page)
                 self.save_current_page(self.current_page)
 
-            if not self.config["one_keyword"]:
+            if not self.one_keyword:
                 self.current_keyword = self.choose_new_keyword(old_keyword=self.current_keyword)
 
             self.log(f"finished loop number {counter}")

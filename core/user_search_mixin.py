@@ -100,10 +100,12 @@ class UserSearchMixin(BaseLinkedinBot):
         self.click_button_humanly(connections_button)
 
         self.random_wait(2, 4)
-        if startpage:
-            if int(startpage) > 0:
+        start_page = self.config.get('start_page', startpage)
+
+        if start_page:
+            if int(start_page) > 0:
                 url = browser.current_url
-                browser.get(url + "&page=" + str(startpage))
+                browser.get(url + "&page=" + str(start_page))
 
     def get_name_title(self, element):
         try:

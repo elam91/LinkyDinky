@@ -50,7 +50,6 @@ Please make sure you have all the fields in your file even if you're not actuall
         "saturday"
     ],
     "exact_match": false,
-    "one_keyword": false,
     "webhook_url": "https://discord.com/api/webhooks/YOURWEBHOOKHERE",
     "delayed_start": false,
     "resend_amount": 30,
@@ -104,6 +103,13 @@ python request_loops.py --user janedoe
 ```bash
 python request_loops.py --user janedoe --keyword java expert
 ```
+ The program skips to the last page it visited for this keyword and user every time you run it, but you can add a start_page to force it to skip to the page you want:
+
+```bash
+python request_minimum.py --user janedoe --start_page 99
+```
+It's a good practice to make sure that page exists for your keyword, or the bot will get stuck.
+
 [Back to top](#linkydinky)
 
 
