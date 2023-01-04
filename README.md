@@ -70,7 +70,7 @@ Please make sure you have all the fields in your file even if you're not actuall
 }
 ```
 ### Make sure you have a cookie file, you can use [EditThisCookie](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg?hl=en) to extract your cookie from LinkedIn.
-
+> :warning: **DO NOT SHARE YOUR COOKIE WITH ANYONE, DO NOT UPLOAD IT TO GIT! IT CAN BE USED TO ACCESS YOUR ACCOUNT**. keep it locally only! :warning:
 ### Name the cookie file {user}cookie.json, and place it in the cookies folder, for example: 
 
 #### **`johndoecookie.json`**
@@ -292,6 +292,16 @@ There is no need to add the word `senior` because it is automatically added if y
 
 ```javascript
 ['pirate', 'dread'] // must be single word, case insensitive.
+```
+
+### More keywords:
+`--download_config` `--download_keywords`
+you can store your jsons for keywords on configs in a remote place, and add these flags to download the
+updated config/keyword list when starting, this way, say you're running on a raspberry pi, you can change settings from your
+browser without connecting to the machine directly.
+
+```bash
+python request_minimum.py --download_config https://api.npoint.io/1234567abcd
 ```
 
 [Back to top](#linkydinky)
