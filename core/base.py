@@ -4,6 +4,7 @@ import sys
 import time
 from collections import deque
 
+import requests
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, MoveTargetOutOfBoundsException
 from selenium.webdriver import ActionChains
@@ -11,8 +12,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 from selenium_stealth import stealth
 import json
 import random
@@ -21,10 +20,12 @@ from discord import Webhook, RequestsWebhookAdapter, Embed
 import datetime
 from pathlib import Path
 
+
 _ALLOWED_ARGUMENTS = ['user', 'start_page', 'loops', 'connect_amount',
                       'minimum_experience', 'location', 'sleep_between_loops',
                       'name_connect_amount', 'minimum_daily_connects', 'maximum_daily_connects',
-                      'resend_amount', 'webhook_url', 'chromedriver_path', 'scheduled_time']
+                      'resend_amount', 'webhook_url', 'chromedriver_path', 'scheduled_time',
+                      'download_config', 'download_keywords']
 
 _ALLOWED_BOOL_ARGUMENTS = ['exact_match', 'send_connect_message', 'delayed_start', 'mandatory_first_word']
 
@@ -64,6 +65,12 @@ class BaseLinkedinBot:
 
     def _apply_bash_args(self):
         args = self._parser.parse_args()
+        if args.download_config:
+            self.download_config(args.download_config)
+            self.config = self.json_to_list(self.config_path + 'config.json')
+        if args.download_keywords:
+            self.download_keywords(args.download_keywords)
+
         for attr, value in args.__dict__.items():
             if attr == '--keyword':
                 self.custom_keyword = ' '.join(value)
@@ -340,3 +347,12 @@ class BaseLinkedinBot:
         current_pages = self.json_to_list(self.config_path + "current_page.json")
         current_pages[user][keyword] = None
         self.list_to_json(self.config_path + "current_page.json", current_pages)
+
+    def download_config(self, url):
+        config = requests.get(url).json()
+        self.list_to_json('./config/config.json', config)
+
+    def download_keywords(self, url):
+        keywordskeep = requests.get(url).json()
+        self.list_to_json('./config/keywordskeep.json', keywordskeep)
+        self.list_to_json('./config/keywords.json', keywordskeep)
