@@ -1,0 +1,26 @@
+{
+    "user": "johndoe",
+    "loops": 3,
+    "skip_days": [
+        "friday",
+        "saturday"
+    ],
+    "exact_match": false,
+    "one_keyword": false,
+    "webhook_url": "https://discord.com/api/webhooks/YOURWEBHOOKHERE",
+    "delayed_start": false,
+    "resend_amount": 30,
+    "connect_amount": 50,
+    "withdraw_amount": 200,
+    "chromedriver_path": "/usr/bin/chromedriver",
+    "minimum_experience": 2,
+    "old_connects_loops": 2,
+    "name_collect_amount": 100,
+    "sleep_between_loops": 25,
+    "mandatory_first_word": false,
+    "send_connect_message": false,
+    "maximum_daily_connects": 52,
+    "minimum_daily_connects": 36,
+    "old_connect_month_delta_answered": 6,
+    "old_connect_month_delta_unanswered": 6
+}
