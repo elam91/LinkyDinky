@@ -227,7 +227,6 @@ class BaseLinkedinBot:
             self.one_keyword = True
         else:
             self.one_keyword = False
-        self.save_config_variable_to_json()
 
         self.current_keyword = self.choose_new_keyword(self.current_keyword)
         self.set_mandatory_senior()
