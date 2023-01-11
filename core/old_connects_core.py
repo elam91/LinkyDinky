@@ -211,6 +211,7 @@ class OldConnectsSearchBot(FriendRequestBot):
             res = self.main_loop()
             if res == -2:
                 return
+            self.random_wait(25, 30)
 
     def main_loop(self):
         old_connects = []
@@ -250,5 +251,6 @@ class OldConnectsSearchBot(FriendRequestBot):
 
         for link in user_list:
             self.browser.execute_script(f'''window.open("{link}","_blank");''')
+            self.random_wait(2, 3)
         if self.current_page == 100:
             return -2
