@@ -67,7 +67,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
             self.current_page = 0
 
         start_time = time.time()
-        for iterations in range(0, self.loops):
+        for iterations in range(0, int(self.loops)):
             if self.config["mandatory_first_word"]:
                 self.set_mandatory(self.current_keyword.split()[0])
 
@@ -89,7 +89,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
                 self.current_keyword = self.choose_new_keyword(old_keyword=self.current_keyword)
 
             self.log(f"finished loop number {counter}")
-            if self.loops != counter:
+            if int(self.loops) != counter:
                 self.log(f"Sleeping between loops ({int(self.config['sleep_between_loops'])} mins)")
                 time.sleep(int(self.config['sleep_between_loops']) * 60)
 

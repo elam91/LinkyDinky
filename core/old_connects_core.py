@@ -207,7 +207,7 @@ class OldConnectsSearchBot(FriendRequestBot):
 
     def main(self):
         self.setup_for_run()
-        for iterations in range(0, self.loops):
+        for iterations in range(0, int(self.loops)):
             res = self.main_loop()
             if res == -2:
                 return
