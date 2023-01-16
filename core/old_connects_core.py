@@ -216,7 +216,8 @@ class OldConnectsSearchBot(FriendRequestBot):
 
     def main(self):
         self.setup_for_run()
-        for iterations in range(0, int(self.loops)):
+        for iteration in range(0, int(self.loops)):
+            self.current_loop = iteration + 1
             res = self.main_loop()
             if res == -2:
                 return
@@ -253,7 +254,7 @@ class OldConnectsSearchBot(FriendRequestBot):
         while self.current_page is not None and self.current_page != 100 and len(user_list) < int(config['resend_amount']):
             new_user_list, self.current_page = self.find_users()
             user_list = user_list + new_user_list
-            self.list_to_json(self.config_path + f"saved_old_connects/{datetime.now()}_old_connects_save.json", user_list)
+            self.list_to_json(self.config_path + f"saved_old_connects/{date.today()}_{self.current_loop}_old_connects_save.json", user_list)
             self.log("collected " + str(len(user_list)) + " users")
             self.random_wait(3, 5)
             if self.current_page == 100:
