@@ -127,9 +127,17 @@ class OldConnectsSearchBot(FriendRequestBot):
                 print(len(messages), name_title)
                 if len(messages) == 0:
                     continue
-                if len(messages) > 2:
+                if len(messages) > 2:  # TODO: Check if this is inhibiting my work by skipping relevant people
                     continue
                 for message in messages:
+                    message_content = None
+                    try:
+                        message_content = message.find_element(By.CLASS_NAME, "msg-s-event__content")
+                    except:
+                        self.log('cant get message content')
+                    if message_content:
+                        if any(char.isdigit() for char in message_content.text):
+                            continue
                     try:
                         sender = message.find_element(By.CLASS_NAME,
                                                       'msg-s-event-listitem__profile-picture').get_attribute(

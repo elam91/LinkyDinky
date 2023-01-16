@@ -7,5 +7,4 @@ connected.txt
 *.png
 __pycache__
 *.pycrm
-config/old_connects_
 test.py
