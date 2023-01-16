@@ -164,6 +164,8 @@ it then opens all the users in different tabs, so you can review and see if ther
 
 **This does not check for experience as it would be too slow.**
 
+also skips if a phone number was sent.
+
 * make sure your config.json is set up correctly, or use bash arguments
 * run the program:
 ```bash
@@ -171,7 +173,9 @@ python old_connects.py --keyword software engineer
 ```
 
 if you don't provide a keyword, one will be taken from the **`keywordskeep.json`**
- 
+
+* saves the profile links to a json inside **`config/saved_old_connects/`**
+  * you can open tabs of any json file in that folder using the **`open_tabs_from_json.py file`**
 
 ### configuration:
 
@@ -182,7 +186,8 @@ if you don't provide a keyword, one will be taken from the **`keywordskeep.json`
 | `old_connects_loops`                 | The number of loops to run.                                                                     | `3`           |
 | `old_connect_month_delta_answered`   | How many months should pass from last message, if the user has replied to you before            | `12`          |
 | `old_connect_month_delta_unanswered` | How many months should pass from last message, if the user has  **never** replied to you before | `6`           |
-| `resend_amount`                       | How many users to collect in each loop, **HIGHLY DISCOURAGE MORE THAN 30, MORE USUALLY FAILS**  | `30`           |
+| `resend_amount`                      | How many users to collect in each loop, **HIGHLY DISCOURAGE MORE THAN 30, MORE USUALLY FAILS**  | `30`          |
+| `dont_open_tabs`                      | Only saves the links in a json and does not open the tabs                                       | `true`         |
 
 [Back to top](#linkydinky)
 
