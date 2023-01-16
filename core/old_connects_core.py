@@ -4,6 +4,7 @@ import time
 
 from selenium.common.exceptions import TimeoutException
 
+from core.base import ReturnTypes
 from core.friend_request_core import FriendRequestBot
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -241,16 +242,34 @@ class OldConnectsSearchBot(FriendRequestBot):
                 raise TimeoutException('WIFI TOO SLOW FOR SEARCH')
         self.random_wait()
 
-        while self.current_page is not None and self.current_page != 100 and len(user_list) < config['resend_amount']:
+        while self.current_page is not None and self.current_page != 100 and len(user_list) < int(config['resend_amount']):
             new_user_list, self.current_page = self.find_users()
             user_list = user_list + new_user_list
+            self.list_to_json(self.config_path + f"saved_old_connects/{datetime.now()}_old_connects_save.json", user_list)
             self.log("collected " + str(len(user_list)) + " users")
             self.random_wait(3, 5)
             if self.current_page == 100:
                 break
 
+        if not self.config['dont_open_tabs']:
+            for link in user_list:
+                self.browser.execute_script(f'''window.open("{link}","_blank");''')
+                self.random_wait(2, 3)
+        if self.current_page == 100:
+            return ReturnTypes.QUIT
+
+    def open_from_json(self, json_name):
+        user_list = self.json_to_list(json_name)
         for link in user_list:
             self.browser.execute_script(f'''window.open("{link}","_blank");''')
             self.random_wait(2, 3)
-        if self.current_page == 100:
-            return -2
+
+    def open_tabs_from_json(self):
+        directory = self.config_path + '/saved_old_connects/'
+        for dirpath, _, filenames in os.walk(directory):
+            for f in filenames:
+                if ".json" in f:
+                    self.log(os.path.abspath(os.path.join(dirpath, f)))
+                    self.open_from_json(os.path.abspath(os.path.join(dirpath, f)))
+                    self.log('sleeping 30 seconds before next file')
+                    self.random_wait(25, 30)

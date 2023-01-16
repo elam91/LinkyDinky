@@ -1,4 +1,4 @@
-from core.base import BaseLinkedinBot
+from core.base import BaseLinkedinBot, ReturnTypes
 from selenium.common.exceptions import ElementNotInteractableException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
@@ -96,6 +96,24 @@ class FriendRequestMixin(BaseLinkedinBot):
             self.save_error_screenshot("TEMPORARY_BAN")
         return banned
 
+    def check_for_withdraw_block(self, name):
+        blocked = False
+        try:
+            element_present = EC.presence_of_element_located(
+                (By.XPATH,
+                 "//p[contains(@class, 'artdeco-toast-item__message')]//span[contains(., 'from when you withdrew.')]/.."))
+            send_button = WebDriverWait(self.browser, 5).until(element_present)
+        except:
+            pass
+        else:
+            blocked = True
+            message = f"""
+                    CAN'T CONNECT - RECENTLY WITHDRAWN, seen recently withdrawn toast when trying to connect with {name}
+                    """
+            self.log(message)
+            self.save_error_screenshot("WITHDRAW_BLOCK")
+        return blocked
+
     def check_for_connection_limit_ban(self, name):
         banned = False
         try:
@@ -113,6 +131,21 @@ class FriendRequestMixin(BaseLinkedinBot):
             self.send_error_report()
             self.save_error_screenshot("TEMPORARY_BAN")
         return banned
+
+    def chain_block_check(self, name):
+        temp_banned = self.check_for_connection_limit_ban(name)
+        if temp_banned:
+            return ReturnTypes.QUIT
+        self.log('checked temp ban')
+        toast_banned = self.check_for_toast_ban(name)
+        if toast_banned:
+            return ReturnTypes.TOAST_BAN
+        self.log('checked toast ban')
+        withdraw_block = self.check_for_withdraw_block(name)
+        if withdraw_block:
+            return ReturnTypes.WITHDRAW_BLOCK
+        self.log('checked_withdraw ban')
+        return ReturnTypes.CONTINUE
 
     def get_connect_button(self, name):
         try:

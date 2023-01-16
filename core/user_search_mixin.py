@@ -30,14 +30,14 @@ class UserSearchMixin(BaseLinkedinBot):
                     counter += 1
                     continue
                 if counter > 0:
-                    self.log("Timed out waiting for page to load", error=1)
+                    self.log("Timed out waiting for page to load", error=self.get_error())
                     return -1
         try:
             element_present = EC.presence_of_element_located((By.XPATH, "//button[text()='Locations']"))
             location_button = WebDriverWait(browser, 10).until(element_present)
             location_button.click()
         except TimeoutException as e:
-            self.log("Timed out waiting for page to load", error=e)
+            self.log("Timed out waiting for page to load", error=self.get_error())
             return -1
         try:
             element_present = EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Add a location']"))
@@ -60,7 +60,7 @@ class UserSearchMixin(BaseLinkedinBot):
                 israel_button2 = WebDriverWait(browser, 10).until(element_present)
                 israel_button2.click()
             except Exception as e:
-                self.log("Timed out waiting for page to load", error=e)
+                self.log("Timed out waiting for page to load", error=self.get_error())
                 return -1
         self.random_wait(5, 7)
         location_button.click()
@@ -78,7 +78,7 @@ class UserSearchMixin(BaseLinkedinBot):
                 first_button = WebDriverWait(self.browser, 10).until(element_present)
                 first_button.click()
             except TimeoutException as e:
-                self.log("Timed out waiting for page to load", error=str(e))
+                self.log("Timed out waiting for page to load", error=self.get_error())
                 return -1
         if second:
             try:
@@ -86,7 +86,7 @@ class UserSearchMixin(BaseLinkedinBot):
                 second_button = WebDriverWait(self.browser, 10).until(element_present)
                 self.click_button_humanly(second_button)
             except TimeoutException as e:
-                self.log("Timed out waiting for page to load", error=str(e))
+                self.log("Timed out waiting for page to load", error=self.get_error())
                 return -1
         if third:
             try:
@@ -94,7 +94,7 @@ class UserSearchMixin(BaseLinkedinBot):
                 third_button = WebDriverWait(self.browser, 10).until(element_present)
                 self.click_button_humanly(third_button)
             except TimeoutException as e:
-                self.log("Timed out waiting for page to load", error=str(e))
+                self.log("Timed out waiting for page to load", error=self.get_error())
                 return -1
         self.random_wait()
         self.click_button_humanly(connections_button)

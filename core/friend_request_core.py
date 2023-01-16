@@ -1,5 +1,6 @@
 import os
 import time
+import traceback
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import datetime
 
+from core.base import ReturnTypes
 from core.user_search_mixin import UserSearchMixin
 from core.friend_request_mixin import FriendRequestMixin
 
@@ -33,7 +35,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
         skip_days = [self.skip_day_translate[day.lower()] if isinstance(day, str) else day for day in user_skip_days]
         if datetime.datetime.today().weekday() in skip_days:
             self.log('Today automation was skipped.')
-            return -2
+            return ReturnTypes.QUIT
 
         max_time = self.config['sleep_between_loops'] * 60
         min_time = max_time - (10 * 60)
@@ -77,10 +79,14 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
             self.log(f'using keyword {self.current_keyword}')
             self.log('#######')
             new_last_page = self.main()
-            if new_last_page == -2:
+            if new_last_page == ReturnTypes.QUIT:
                 self.log("got -2 quitting")
                 self.send_error_report()
-                return -2
+                return ReturnTypes.QUIT
+            elif new_last_page == ReturnTypes.QUIT:
+                self.log('Maximum connections reached, quitting')
+                self.send_to_discord('Maximum connections reached. run finished.')
+
             if new_last_page:
                 self.current_page = int(new_last_page)
                 self.save_current_page(self.current_page)
@@ -130,18 +136,18 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
             if res == -2:
                 error_counter += 1
                 if error_counter >= 3:
-                    self.log('3 errors, quitting', error=1)
-                    return -2
-            elif res == -1:
+                    self.log('3 errors, quitting', error=self.get_error())
+                    return ReturnTypes.QUIT
+            elif res == ReturnTypes.ERROR:
                 error_counter += 1
                 if error_counter >= 3:
-                    self.log('3 errors, quitting', error=1)
-                    return -2
-            elif res == -3:
+                    self.log('3 errors, quitting', error=self.get_error())
+                    return ReturnTypes.QUIT
+            elif res == ReturnTypes.TOAST_BAN:
                 toast_error_counter += 1
                 if toast_error_counter >= 6:
                     self.log(f"{toast_error_counter} toast errors, quitting")
-                    return -2
+                    return ReturnTypes.QUIT
             elif res == 1:
                 connection_counter += 1
                 self.actual_connects_num = int(self.json_to_list(self.config_path + 'actual_connects.json')['num'])
@@ -149,10 +155,15 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
                 self.save_actual_connects()
                 if self.actual_connects_num >= self.config['maximum_daily_connects']:
                     self.log("QUITTING: maximum daily connects reached")
-                    return -2
+                    self.loop_end(start_time, connection_counter)
+                    return ReturnTypes.MAXIMUM_CONNECTIONS
                 self.log(f'connected with {connection_counter} people so far')
                 self.log(f'running for {(time.time() - start_time) / 60} minutes')
 
+        self.loop_end(start_time, connection_counter)
+        return self.current_page
+
+    def loop_end(self, start_time, connection_counter):
         end_time = time.time()
         time_took = end_time - start_time
         time_took_mins = (end_time - start_time) / 60
@@ -164,8 +175,6 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
         self.prepare_discord_message(connection_counter, time_took_mins, self.current_page, self.current_keyword)
         self.log(os.linesep)
         self.save_cookie()
-        return self.current_page
-
     def save_current_page(self, current_page):
         if self.user not in self.current_page_dict:
             self.current_page_dict[self.user] = {self.current_keyword: self.current_page}
@@ -208,7 +217,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
                     name_title = self.get_name_title(user)
 
                 except Exception as e:
-                    self.log('Cant get name', error=e)
+                    self.log('Cant get name', error=self.get_error())
                     continue
                 first_name = name_title.lower().split()[0]
                 if first_name not in self.translated_names.keys():
@@ -224,7 +233,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
                                                         ".//p[contains(@class, 'entity-result__summary')]").text
                 except Exception as e:
                     past_experience = ""
-                    self.log("couldnt get past experience", error=str(e), printed=False)
+                    self.log("couldnt get past experience", error=self.get_error(), printed=False)
                 whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
 
                 for word in name_title.lower().split():
@@ -319,7 +328,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
                         f' {minimum_experience} years')
                     return 0
         except Exception as e:
-            print(e)
+            print(traceback.format_exc())
             self.log('failed to get experience')
             if self.config["minimum_experience"] > 0:
                 self.log('skipping')
@@ -341,6 +350,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
 
             self.random_wait(5, 7)
             self.click_connect_button(connect_button)
+            self.chain_block_check(name_title.text)
             email_block = self.check_for_email_prompt()
             if email_block:
                 self.log("EMAIL BLOCK: can't connect because user has defined email block")
@@ -350,45 +360,36 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
             try:
                 res = self.send_connect_request_with_message(self.translated_names, first_name, name_title.text,
                                                              subtitle.text)
-                if res == 0:
-                    return 0
+                if res == ReturnTypes.CONTINUE:
+                    return ReturnTypes.CONTINUE
                 self.random_wait()
-                temp_banned = self.check_for_connection_limit_ban(name_title.text)
-                if not temp_banned:
-                    temp_banned = self.check_for_toast_ban(name_title.text)
-                    if temp_banned:
-                        return -3
-                else:
-                    return -2
+                ban_block_check = self.chain_block_check(name_title.text)
+                if ban_block_check != 0:
+                    return ban_block_check
 
                 self.log(f'{name_title.text}, {subtitle.text} connected')
                 return 1
 
             except Exception as e:
-                self.log('unable to send friend request', error=e)
+                self.log('unable to send friend request', error=self.get_error())
                 self.save_error_screenshot("UNABLE_ERROR")
 
-                self.log(user_link, error=e)
+                self.log(user_link, error=self.ge)
                 self.random_wait()
                 return -1
 
         else:
             try:
                 self.send_connect_request_no_message()
+
             except Exception as e:
-                self.log('unable to send friend request', error=e)
+                self.log('unable to send friend request', error=self.get_error())
                 self.save_error_screenshot("UNABLE_ERROR")
                 self.log(user_link, error=e)
                 self.random_wait()
                 return -1
 
-            banned = self.check_for_connection_limit_ban(name_title.text)
-            if not banned:
-                banned = self.check_for_toast_ban(name_title.text)
-                if banned:
-                    return -3
-            else:
-                return -2
+
 
             self.log(f'{name_title.text}, {subtitle.text} connected')
             return 1

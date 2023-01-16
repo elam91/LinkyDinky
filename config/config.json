@@ -1,5 +1,5 @@
 {
-    "user": "rotem",
+    "user": "gilad",
     "loops": 3,
     "skip_days": [
         "friday",
@@ -22,6 +22,5 @@
     "minimum_daily_connects": 36,
     "old_connect_month_delta_answered": 12,
     "old_connect_month_delta_unanswered": 6,
-    "location": "Israel",
-    "start_page": "99"
+    "location": "Israel"
 }

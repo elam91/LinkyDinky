@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import time
+import traceback
 from collections import deque
 
 import requests
@@ -20,17 +21,27 @@ from discord import Webhook, RequestsWebhookAdapter, Embed
 import datetime
 from pathlib import Path
 
-
 _ALLOWED_ARGUMENTS = ['user', 'start_page', 'loops', 'connect_amount',
                       'minimum_experience', 'location', 'sleep_between_loops',
                       'name_connect_amount', 'minimum_daily_connects', 'maximum_daily_connects',
                       'resend_amount', 'webhook_url', 'chromedriver_path', 'scheduled_time',
-                      'download_config', 'download_keywords']
+                      'download_config', 'download_keywords', 'old_connects_loops']
 
-_ALLOWED_BOOL_ARGUMENTS = ['exact_match', 'send_connect_message', 'delayed_start', 'mandatory_first_word']
+_ALLOWED_BOOL_ARGUMENTS = ['exact_match', 'send_connect_message', 'delayed_start', 'mandatory_first_word',
+                           'dont_open_tabs']
+
+
+class ReturnTypes:
+    QUIT = -2
+    TOAST_BAN = -3
+    ERROR = -1
+    CONTINUE = 0
+    WITHDRAW_BLOCK = -4
+    MAXIMUM_CONNECTIONS = 1
 
 
 class BaseLinkedinBot:
+
     def __init__(self):
         self._parser = argparse.ArgumentParser(
             prog='LinkyDinky',
@@ -62,7 +73,6 @@ class BaseLinkedinBot:
             self._parser.add_argument(f'--{argument}', action='store_true')
         self._parser.add_argument('--keyword', nargs='+')
 
-
     def _apply_bash_args(self):
         args = self._parser.parse_args()
         if args.download_config:
@@ -78,9 +88,6 @@ class BaseLinkedinBot:
             else:
                 if value is not None:
                     self.config[attr] = value
-
-
-
 
     def get_generic_linkedin_button(self, button_text):
         element_present = EC.presence_of_element_located(
@@ -98,13 +105,14 @@ class BaseLinkedinBot:
         return self.cookie_path
 
     @classmethod
-    def json_to_list(self, path):
+    def json_to_list(cls, path):
         with open(path, 'r') as f:
             new_str = json.load(f)
             return new_str
 
     @classmethod
-    def list_to_json(self, path, list):
+    def list_to_json(cls, path, list):
+        Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
         with open(path, 'w', encoding="UTF-8") as f:
             json.dump(list, f, ensure_ascii=False, indent=4)
 
@@ -356,3 +364,6 @@ class BaseLinkedinBot:
         keywordskeep = requests.get(url).json()
         self.list_to_json('./config/keywordskeep.json', keywordskeep)
         self.list_to_json('./config/keywords.json', keywordskeep)
+
+    def get_error(self):
+        return traceback.format_exc()

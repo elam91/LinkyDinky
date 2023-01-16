@@ -12,7 +12,7 @@ friend_requester.log(f'Scheduled at {SCHEDULE_TIME}')
 try:
     schedule.every().day.at(SCHEDULE_TIME).do(friend_requester.do_main_task)
 except Exception as error:
-    friend_requester.log("Exception while running SCHEDULED friend requests", error=error)
+    friend_requester.log("Exception while running SCHEDULED friend requests", error=friend_requester.get_error())
     friend_requester.send_error_report()
     raise error
 
