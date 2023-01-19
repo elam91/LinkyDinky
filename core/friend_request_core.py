@@ -350,7 +350,9 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
 
             self.random_wait(5, 7)
             self.click_connect_button(connect_button)
-            self.chain_block_check(name_title.text)
+            block_check = self.chain_block_check(name_title.text)
+            if block_check:
+                return block_check
             email_block = self.check_for_email_prompt()
             if email_block:
                 self.log("EMAIL BLOCK: can't connect because user has defined email block")
