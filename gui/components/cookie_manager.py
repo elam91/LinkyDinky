@@ -27,7 +27,6 @@ def create_cookie_manager(cookies_path: str, page: ft.Page, on_cookies_changed=N
             for user in users:
                 chip = ft.Chip(
                     label=ft.Text(user),
-                    delete_icon=Icons.CLOSE,
                     on_delete=lambda e, u=user: delete_cookie(u),
                 )
                 cookie_chips.controls.append(chip)

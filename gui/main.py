@@ -84,12 +84,12 @@ def main(page: ft.Page):
         on_status_change=update_status
     )
     
+    config_form = create_config_form(config_path, page, cookies_path=cookies_path, on_save=on_config_saved)
+    
     def on_cookies_changed(users):
         config_form.refresh_user_dropdown(users)
     
     cookie_manager = create_cookie_manager(cookies_path, page, on_cookies_changed=on_cookies_changed)
-    
-    config_form = create_config_form(config_path, page, cookies_path=cookies_path, on_save=on_config_saved)
     
     keywords_keep = load_json("config/keywordskeep.json")
     keywords_keep_input = create_tag_input(
