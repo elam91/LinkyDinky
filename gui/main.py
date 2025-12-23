@@ -4,7 +4,11 @@ import json
 import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if getattr(sys, 'frozen', False):
+    BASE_DIR = sys._MEIPASS
+else:
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, BASE_DIR)
 
 from gui.components.config_form import create_config_form
 from gui.components.tag_input import create_tag_input
@@ -17,22 +21,27 @@ def main(page: ft.Page):
     page.window.height = 800
     page.padding = 20
     
-    config_path = "config/config.json"
+    config_path = os.path.join(BASE_DIR, "config/config.json")
     
     bot_runner = None
     status_text = ft.Text("Status: Idle", size=16, weight=ft.FontWeight.BOLD)
     start_button = None
     stop_button = None
     
+    def get_path(relative_path):
+        return os.path.join(BASE_DIR, relative_path)
+    
     def load_json(path):
         try:
-            with open(path, 'r') as f:
+            full_path = get_path(path) if not os.path.isabs(path) else path
+            with open(full_path, 'r') as f:
                 return json.load(f)
         except:
             return []
     
     def save_json(path, data):
-        with open(path, 'w') as f:
+        full_path = get_path(path) if not os.path.isabs(path) else path
+        with open(full_path, 'w') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
     
     def on_config_saved():
@@ -241,8 +250,22 @@ def main(page: ft.Page):
         padding=10,
     )
     
+    save_settings_button = ft.ElevatedButton(
+        "Save All Settings",
+        icon=Icons.SAVE,
+        on_click=config_form.save_config,
+        bgcolor=Colors.BLUE,
+        color=Colors.WHITE,
+    )
+    
     page.add(
-        ft.Text("LinkyDinky Automation Bot", size=28, weight=ft.FontWeight.BOLD),
+        ft.Row(
+            [
+                ft.Text("LinkyDinky Automation Bot", size=28, weight=ft.FontWeight.BOLD),
+                save_settings_button,
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        ),
         ft.Divider(),
         ft.Row(
             [
@@ -256,7 +279,7 @@ def main(page: ft.Page):
     )
     
     console.add_log("LinkyDinky GUI initialized successfully!")
-    console.add_log("Configure your settings on the left and click 'Start Bot' to begin")
+    console.add_log("Configure your settings on the left and click 'Save All Settings' to save")
 
 if __name__ == "__main__":
     ft.app(target=main)

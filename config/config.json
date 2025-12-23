@@ -13,7 +13,7 @@
     "withdraw_amount": 200,
     "chromedriver_path": "/opt/homebrew/bin/chromedriver",
     "minimum_experience": 4,
-    "maximum_experience": 15,
+    "maximum_experience": 8,
     "old_connects_loops": 2,
     "name_collect_amount": 100,
     "sleep_between_loops": 25,

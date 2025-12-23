@@ -8,3 +8,7 @@ connected.txt
 __pycache__
 *.pycrm
 test.py
+/dist
+/build
+/.DS_Store
+*.spec

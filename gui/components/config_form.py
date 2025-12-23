@@ -9,17 +9,26 @@ def create_config_form(config_path: str, page: ft.Page, on_save=None):
     fields = {}
     
     def save_config(e=None):
+        print(f"Save button clicked! Saving to {config_path}")
+        print(f"Fields to save: {list(fields.keys())}")
+        
         for key, control in fields.items():
             if isinstance(control, ft.TextField):
                 try:
                     config[key] = int(control.value)
                 except ValueError:
                     config[key] = control.value
+                print(f"  {key} = {config[key]}")
             elif isinstance(control, ft.Switch):
                 config[key] = control.value
+                print(f"  {key} = {config[key]}")
         
-        with open(config_path, 'w') as f:
-            json.dump(config, f, indent=4)
+        try:
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=4)
+            print(f"Successfully saved to {config_path}")
+        except Exception as ex:
+            print(f"ERROR saving config: {ex}")
         
         if on_save:
             on_save()
@@ -97,17 +106,12 @@ def create_config_form(config_path: str, page: ft.Page, on_save=None):
             if field:
                 form_fields.append(field)
     
-    form_fields.append(ft.Container(height=20))
-    form_fields.append(
-        ft.ElevatedButton(
-            "Save Configuration",
-            icon=Icons.SAVE,
-            on_click=save_config,
-        )
-    )
-    
-    return ft.Column(
+    form_column = ft.Column(
         form_fields,
         spacing=15,
         scroll=ft.ScrollMode.AUTO,
     )
+    
+    form_column.save_config = save_config
+    
+    return form_column
