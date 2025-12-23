@@ -13,6 +13,7 @@ sys.path.insert(0, BASE_DIR)
 from gui.components.config_form import create_config_form
 from gui.components.tag_input import create_tag_input
 from gui.components.console_view import create_console_view
+from gui.components.cookie_manager import create_cookie_manager
 from gui.bot_runner import BotRunner
 
 def main(page: ft.Page):
@@ -22,6 +23,7 @@ def main(page: ft.Page):
     page.padding = 20
     
     config_path = os.path.join(BASE_DIR, "config/config.json")
+    cookies_path = os.path.join(BASE_DIR, "cookies")
     
     bot_runner = None
     status_text = ft.Text("Status: Idle", size=16, weight=ft.FontWeight.BOLD)
@@ -82,7 +84,12 @@ def main(page: ft.Page):
         on_status_change=update_status
     )
     
-    config_form = create_config_form(config_path, page, on_save=on_config_saved)
+    def on_cookies_changed(users):
+        config_form.refresh_user_dropdown(users)
+    
+    cookie_manager = create_cookie_manager(cookies_path, page, on_cookies_changed=on_cookies_changed)
+    
+    config_form = create_config_form(config_path, page, cookies_path=cookies_path, on_save=on_config_saved)
     
     keywords_keep = load_json("config/keywordskeep.json")
     keywords_keep_input = create_tag_input(
@@ -199,6 +206,8 @@ def main(page: ft.Page):
         content=ft.Column(
             [
                 ft.Text("Settings", size=24, weight=ft.FontWeight.BOLD),
+                ft.Divider(),
+                cookie_manager,
                 ft.Divider(),
                 config_form,
                 ft.Divider(),

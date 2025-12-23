@@ -3,10 +3,15 @@ name: Create Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version number (e.g., 1.0.0)'
+      bump_type:
+        description: 'Version bump type'
         required: true
-        type: string
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
       release_notes:
         description: 'Release notes'
         required: false
@@ -16,9 +21,30 @@ on:
 jobs:
   build-macos:
     runs-on: macos-latest
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate next version
+        id: version
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          LATEST_VERSION=${LATEST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_VERSION"
+          
+          case "${{ inputs.bump_type }}" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+          
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Next version: $NEW_VERSION (from $LATEST_TAG)"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,6 +61,11 @@ jobs:
         id: stealth_path
         run: echo "path=$(python -c 'import selenium_stealth; print(selenium_stealth.__path__[0])')" >> $GITHUB_OUTPUT
 
+      - name: Create required directories
+        run: |
+          mkdir -p cookies
+          mkdir -p logs
+
       - name: Build macOS app
         run: |
           flet pack gui/main.py --name "LinkyDinky" \
@@ -48,13 +79,13 @@ jobs:
       - name: Create ZIP of app
         run: |
           cd dist
-          zip -r LinkyDinky-macos-${{ inputs.version }}.zip LinkyDinky.app
+          zip -r LinkyDinky-macos-${{ steps.version.outputs.new_version }}.zip LinkyDinky.app
           
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: LinkyDinky-macos
-          path: dist/LinkyDinky-macos-${{ inputs.version }}.zip
+          path: dist/LinkyDinky-macos-${{ steps.version.outputs.new_version }}.zip
 
   create-release:
     needs: build-macos
@@ -71,11 +102,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ inputs.version }}
-          name: LinkyDinky v${{ inputs.version }}
+          tag_name: v${{ needs.build-macos.outputs.new_version }}
+          name: LinkyDinky v${{ needs.build-macos.outputs.new_version }}
           body: ${{ inputs.release_notes }}
           draft: false
           prerelease: false
           files: |
-            ./artifacts/LinkyDinky-macos-${{ inputs.version }}.zip
-
+            ./artifacts/LinkyDinky-macos-${{ needs.build-macos.outputs.new_version }}.zip
