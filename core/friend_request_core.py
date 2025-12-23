@@ -198,17 +198,20 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
         self.close_all_chats()
         user_list = []
 
-        results = self.browser.find_elements(By.XPATH, "//div[@class='entity-result__item']")
+        results = self.browser.find_elements(By.XPATH, "//div[@data-view-name='search-entity-result-universal-template']")
+        self.log(f"{len(results)} results found")
+        print(len(results), "results found")
         for user in results:
             try:
-                connect_button = user.find_element(By.XPATH, ".//span[text()='Connect']")
+                connect_button = user.find_element(By.XPATH, ".//button[contains(., 'Connect')]")
             except:
+                print("connect button is not found")
                 continue
             else:
                 res = 1
                 try:
                     subtitle = user.find_element(By.XPATH,
-                                                 ".//div[@class='entity-result__primary-subtitle t-14 t-black t-normal']").text
+                                                 ".//div[contains(@class, 't-14 t-black t-normal')]").text
 
                 except:
                     subtitle = ""
@@ -317,8 +320,9 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
     def friend_request(self, user_link):
         self.browser.get(user_link)
         minimum_experience = self.config['minimum_experience']
+        maximum_experience = self.config.get('maximum_experience')
         self.close_all_chats()
-        name_title = self.browser.find_element(By.XPATH, "//h1[contains(@class, 'text-heading-xlarge')]")
+        name_title = self.browser.find_element(By.XPATH, "//h1[contains(@class, 'inline t-24 v-align-middle break-word')]")
         try:
             experience_time = self.get_experience(self.current_keyword, name_title)
             if minimum_experience:
@@ -326,6 +330,12 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
                     self.log(
                         f'MINIMUM EXPERIENCE: skipping {name_title.text} because experience ({experience_time} years) is less than'
                         f' {minimum_experience} years')
+                    return 0
+            if maximum_experience:
+                if experience_time > int(maximum_experience):
+                    self.log(
+                        f'MAXIMUM EXPERIENCE: skipping {name_title.text} because experience ({experience_time} years) is more than'
+                        f' {maximum_experience} years')
                     return 0
         except Exception as e:
             print(traceback.format_exc())
@@ -344,7 +354,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
             subtitle = ""
             try:
                 subtitle = self.browser.find_element(By.XPATH,
-                                                     "//div[contains(@class, 'text-body-medium break-words')]")
+                                                     "//div[contains(@class, 't-14 t-black t-normal')]")
             except:
                 pass
 
@@ -369,7 +379,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
                 if ban_block_check != 0:
                     return ban_block_check
 
-                self.log(f'{name_title.text}, {subtitle.text} connected')
+                self.log(f'{name_title.text}, {subtitle} connected')
                 return 1
 
             except Exception as e:
@@ -393,7 +403,7 @@ class FriendRequestBot(FriendRequestMixin, UserSearchMixin):
 
 
 
-            self.log(f'{name_title.text}, {subtitle.text} connected')
+            self.log(f'{name_title.text}, {subtitle} connected')
             return 1
 
     def save_actual_connects(self, num=None):

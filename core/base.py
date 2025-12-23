@@ -17,12 +17,12 @@ from selenium_stealth import stealth
 import json
 import random
 import discord
-from discord import Webhook, RequestsWebhookAdapter, Embed
+from discord import Webhook, Embed
 import datetime
 from pathlib import Path
 
 _ALLOWED_ARGUMENTS = ['user', 'start_page', 'loops', 'connect_amount',
-                      'minimum_experience', 'location', 'sleep_between_loops',
+                      'minimum_experience', 'maximum_experience', 'location', 'sleep_between_loops',
                       'name_connect_amount', 'minimum_daily_connects', 'maximum_daily_connects',
                       'resend_amount', 'webhook_url', 'chromedriver_path', 'scheduled_time',
                       'download_config', 'download_keywords', 'old_connects_loops']
@@ -270,17 +270,20 @@ class BaseLinkedinBot:
 
     def send_to_discord(self, message=None, embed=None, file_obj=None):
         webhook_url = self.config['webhook_url']
-        if webhook_url:
-            webhook = Webhook.from_url(webhook_url, adapter=RequestsWebhookAdapter())
-            data = dict()
-            if message:
-                message = "-" * 50 + "\n" + message + "\n" + "-" * 50
-                webhook.send(content=message)
-            if embed:
-                if file_obj:
-                    webhook.send(embed=embed, file=file_obj)
-                else:
-                    webhook.send(embed=embed)
+        if webhook_url and webhook_url != "https://discord.com/api/webhooks/YOURWEBHOOKHERE":
+            try:
+                webhook = Webhook.from_url(webhook_url, session=requests.Session())
+                data = dict()
+                if message:
+                    message = "-" * 50 + "\n" + message + "\n" + "-" * 50
+                    webhook.send(content=message)
+                if embed:
+                    if file_obj:
+                        webhook.send(embed=embed, file=file_obj)
+                    else:
+                        webhook.send(embed=embed)
+            except (ValueError, Exception) as e:
+                print(f"Discord webhook disabled or invalid: {e}")
         return
 
     def error_handler(self, connect_button=None):
@@ -337,6 +340,11 @@ class BaseLinkedinBot:
 
     def click_button_humanly(self, button):
         x, y = button.size["width"], button.size["height"]
+
+        if x <= 0 or y <= 0:
+            self.scroll_to_element(button)
+            button.click()
+            return
 
         random_x = random.randint(0, x - 1)
         random_y = random.randint(0, y - 1)

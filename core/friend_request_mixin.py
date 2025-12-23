@@ -32,17 +32,21 @@ class FriendRequestMixin(BaseLinkedinBot):
         element_present = EC.presence_of_element_located(
             (By.XPATH, "//div[@id='experience']/.."))
         experience_list = WebDriverWait(self.browser, 5).until(element_present)
-        experience_items = experience_list.find_elements(By.CSS_SELECTOR, 'li.artdeco-list__item')
+        experience_items = experience_list.find_elements(By.XPATH, './/div[@data-view-name="profile-component-entity"]')
+        print(f"experience_items: {experience_items}")
         years = 0
         months = 0
 
         current_job = experience_items[0]
         for item in experience_items:
             try:
-                roles = item.find_elements(By.CSS_SELECTOR, 'span.t-bold')
-                roles = [role.find_element(By.CSS_SELECTOR,
-                                           'span.visually-hidden').text.lower() for role in roles]
+                roles = item.find_elements(By.XPATH, './/div[@class="display-flex flex-wrap align-items-center full-height"]')
+                print(f"roles: {roles}")
+                roles = [role.find_element(By.XPATH,
+                                           './/span[@class="visually-hidden"]').text.lower() for role in roles]
+                print(f"roles: {roles}")
             except:
+                print(f"roles not found")
                 continue
             if len(roles) == 1:
                 multiple_roles = False

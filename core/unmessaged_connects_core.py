@@ -1,0 +1,233 @@
+import os
+from datetime import datetime, date
+import time
+
+from selenium.common.exceptions import TimeoutException
+
+from core.base import ReturnTypes
+from core.friend_request_core import FriendRequestBot
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+
+class UnmessagedConnectsBot(FriendRequestBot):
+    def __init__(self, start_page=0):
+        super().__init__()
+        self.old_names = []
+        self.current_page = start_page
+        self.loops = self.config.get('old_connects_loops', 1)
+        self.username = ''
+
+    def find_users(self):
+        exact_match = self.config['exact_match']
+        self.close_all_chats()
+        user_list = []
+        results = self.browser.find_elements(By.XPATH, "//div[@class='entity-result__item']")
+        for user in results:
+            print("*" * 10)
+            try:
+                message_button = user.find_element(By.XPATH, ".//span[text()='Message']")
+            except:
+                continue
+            else:
+                res = 1
+                try:
+                    subtitle = user.find_element(By.XPATH,
+                                                 ".//div[@class='entity-result__primary-subtitle t-14 t-black t-normal']").text
+
+                except:
+                    subtitle = ""
+                    continue
+                try:
+                    name_title = self.get_name_title(user)
+                except:
+                    name_title = ""
+                if name_title:
+                    first_name = name_title.lower().split()[0]
+                    if first_name not in self.translated_names.keys():
+                        if first_name not in self.untranslated_names and first_name not in self.name_blacklist and first_name not in self.translated_names.keys():
+                            self.untranslated_names.append(first_name)
+                            self.list_to_json(self.config_path + "untranslated_names.json", self.untranslated_names)
+                else:
+                    self.log("cant get name")
+                if name_title in self.old_names:
+                    continue
+                else:
+                    self.old_names.append(name_title)
+                try:
+                    past_experience = user.find_element(By.XPATH,
+                                                        ".//p[contains(@class, 'entity-result__summary')]").text
+                except Exception as e:
+                    past_experience = ""
+                whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+
+                for word in name_title.lower().split():
+                    if word in self.name_blacklist:
+                        self.log(f"NAME BLACKLIST: {name_title} blacklisted name {word}, skipping")
+                        res = -1
+                        break
+                if res == -1:
+                    continue
+                filtered_subtitle = ''.join(filter(whitelist.__contains__, subtitle))
+
+                for word in self.blacklist:
+                    if word.lower() in filtered_subtitle.lower().split():
+                        self.log(f"BLACKLIST: skipping {name_title} because title has the word {word}")
+                        res = -1
+                        break
+                if res == -1:
+                    continue
+                res = -1
+
+                if exact_match:
+                    res1 = 1
+                    res2 = 1
+                    for word in self.current_keyword.lower().split():
+                        if word not in filtered_subtitle.lower():
+                            res1 = -1
+                            break
+                    if past_experience:
+                        if "current:" not in past_experience:
+                            res2 = -1
+                        else:
+                            for word in self.current_keyword.lower().split():
+                                if word not in past_experience.lower():
+                                    res2 = -1
+                                    break
+                    if res1 == -1 and res2 == -1:
+                        self.log(
+                            f'EXACT MATCH: skipping {name_title} because {filtered_subtitle} does not contain {self.current_keyword.lower()}')
+                        continue
+                        
+                self.close_all_chats()
+                self.random_wait(1, 2)
+                message_button.click()
+                
+                element_present = EC.presence_of_element_located((By.XPATH,
+                                                                  ".//button[contains(@class, 'msg-overlay-bubble-header__control')]//li-icon[contains(@type,'maximize')]/.."))
+                expand_button = WebDriverWait(self.browser, 10).until(element_present)
+                self.click_button_humanly(expand_button)
+                time.sleep(1)
+                
+                element_present = EC.presence_of_element_located(
+                    (By.XPATH, "//ul[contains(@class, 'msg-s-message-list-content')]"))
+                try:
+                    message_list = WebDriverWait(self.browser, 10).until(element_present)
+                except:
+                    link = user.find_element(By.XPATH, ".//a[contains(@class, 'app-aware-link')]")
+                    if link.get_attribute('href') not in user_list:
+                        self.log(f"UNMESSAGED: Adding {name_title} - no message history found")
+                        user_list.append(link.get_attribute('href'))
+                    self.close_all_chats()
+                    continue
+                    
+                messages = message_list.find_elements(By.XPATH, "//li[contains(@class, 'msg-s-message-list__event')]")
+                print(len(messages), name_title)
+                
+                if len(messages) == 0:
+                    link = self.get_profile_link(user)
+                    if link not in user_list:
+                        self.log(f"UNMESSAGED: Adding {name_title} - never messaged")
+                        user_list.append(link)
+                else:
+                    self.log(f"SKIPPING: {name_title} - already has {len(messages)} messages")
+                
+                self.close_all_chats()
+            self.list_to_json(self.config_path + 'old_names.json', self.old_names)
+            self.random_wait(1, 2)
+
+        self.close_all_chats()
+        self.random_wait()
+        next_button = self.get_next_button()
+        if not next_button.is_enabled():
+            self.current_page = 100
+            self.log("REACHED LAST PAGE, ENDING")
+            return user_list, self.current_page
+        try:
+            self.close_all_chats()
+            next_button.click()
+        except:
+            time.sleep(30)
+            return (-1, -1)
+        self.random_wait(2, 4)
+        self.close_all_chats()
+        url = self.browser.current_url
+        self.current_page = str(url.split('page=')[1].split('&')[0])
+        self.log("the current page is " + self.current_page)
+        return user_list, int(self.current_page)
+
+    def get_username(self):
+        user_photo = self.browser.find_element(By.XPATH, ".//img[contains(@class, 'global-nav__me-photo')]")
+        self.username = user_photo.get_attribute('alt')
+        self.log(f'username is {self.username}')
+
+    def main(self):
+        self.setup_for_run()
+        for iteration in range(0, int(self.loops)):
+            self.current_loop = iteration + 1
+            res = self.main_loop()
+            if res == -2:
+                return
+            self.random_wait(25, 30)
+
+    def main_loop(self):
+        unmessaged_connects = []
+        config = self.config
+        self.list_to_json(self.config_path + 'unmessaged_connects.json', unmessaged_connects)
+        self.log(self.cookie_path)
+        start_time = time.time()
+        self.log(f'started at {datetime.now()} with {self.user} account')
+        try:
+            self.log(os.linesep)
+        except:
+            self.log('\n')
+
+        self.create_browser()
+
+        user_list = []
+        self.connect_to_linkedin()
+        self.get_username()
+        res = self.search(self.current_keyword, self.current_page, self.browser, self.location, first=True,
+                          second=False, third=False)
+
+        if res == -1:
+            self.random_wait(10, 15)
+            res = self.search(self.current_keyword, self.current_page, self.browser, self.location, first=True,
+                              second=False, third=False)
+            if res == -1:
+                raise TimeoutException('WIFI TOO SLOW FOR SEARCH')
+        self.random_wait()
+
+        while self.current_page is not None and self.current_page != 100 and len(user_list) < int(config['resend_amount']):
+            new_user_list, self.current_page = self.find_users()
+            user_list = user_list + new_user_list
+            self.list_to_json(self.config_path + f"saved_unmessaged_connects/{date.today()}_{self.current_loop}_unmessaged_connects.json", user_list)
+            self.log("collected " + str(len(user_list)) + " unmessaged connections")
+            self.random_wait(3, 5)
+            if self.current_page == 100:
+                break
+
+        if not self.config.get('dont_open_tabs', False):
+            for link in user_list:
+                self.browser.execute_script(f'''window.open("{link}","_blank");''')
+                self.random_wait(2, 3)
+        if self.current_page == 100:
+            return ReturnTypes.QUIT
+
+    def open_from_json(self, json_name):
+        user_list = self.json_to_list(json_name)
+        for link in user_list:
+            self.browser.execute_script(f'''window.open("{link}","_blank");''')
+            self.random_wait(2, 3)
+
+    def open_tabs_from_json(self):
+        directory = self.config_path + '/saved_unmessaged_connects/'
+        for dirpath, _, filenames in os.walk(directory):
+            for f in filenames:
+                if ".json" in f:
+                    self.log(os.path.abspath(os.path.join(dirpath, f)))
+                    self.open_from_json(os.path.abspath(os.path.join(dirpath, f)))
+                    self.log('sleeping 30 seconds before next file')
+                    self.random_wait(25, 30)
+
